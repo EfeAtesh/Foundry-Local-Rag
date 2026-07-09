@@ -100,7 +100,7 @@ def main():
     print("Models unloaded. Done!")
 
 
-# actually pol function in calculator 
+# actually pol function from calculator 
 # zip function it pairs elements from two lists
 def cosine_similarity(a,b):
     return sum(x*y for x,y in zip(a,b)) / (math.sqrt(sum(x*x for x in a)) * math.sqrt(sum(y*y for y in b)))
