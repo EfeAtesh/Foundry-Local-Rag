@@ -5,7 +5,7 @@ import sqlite3
 
 connection = sqlite3.connect('database-rag.db')
 cursor = connection.cursor()
-
+"""
 cursor.execute('''
     CREATE TABLE documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +31,7 @@ cursor.execute('''
 
 
 ''')
-
+"""
 print("Table created successfully.")
 
 
