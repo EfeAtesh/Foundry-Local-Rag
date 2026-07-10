@@ -65,7 +65,7 @@ def main():
             {
                 "role": "system",
                 "content": (
-                    "Answer the user's question using only the provided context. Always give step by step approach to solve problems and list down approach. Always use curly braces {} for outputs "
+                    "Answer the user's question using only the provided context. Always give step by step approach to solve problems and list down approach. OUTPUT:  braces {}  in json format "
                     "If the context doesn't contain enough information, say so.\n\n"
                     f"Context:\n{context}"
                 ),
