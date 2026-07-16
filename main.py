@@ -1,9 +1,11 @@
 from collections import abc
+from collections import abc
 import numbers
 import math
 from foundry_local_sdk import Configuration, FoundryLocalManager
 import sqlite3
 from datetime import datetime
+import system, os, pypdf, json
 
 documents = [
     "Foundry Local runs AI models directly on your device without cloud connectivity.",
@@ -28,7 +30,8 @@ def main():
         
     embedding_client = embedding_model.get_embedding_client()
     doc_embeddings = [item.embedding for item in embedding_client.generate_embeddings(documents).data]
-
+    chunks = chunking(documents)
+    print(chunks)
     for i, (doc, emb) in enumerate(zip(documents, doc_embeddings)):
         min_val = min(emb)
         max_val = max(emb)
@@ -100,7 +103,7 @@ def main():
     print("Models unloaded. Done!")
 
 
-# actually pol function from calculator 
+# actually pol function from scientific calculators
 # zip function it pairs elements from two lists
 def cosine_similarity(a,b):
     return sum(x*y for x,y in zip(a,b)) / (math.sqrt(sum(x*x for x in a)) * math.sqrt(sum(y*y for y in b)))
@@ -115,6 +118,32 @@ def find_relevant(query_embedding, doc_embeddings, top_k=3):
         scores.append((i, score))
     scores.sort(key=lambda x: x[1], reverse=True)
     return scores[:top_k]
+
+
+def chunking(text):
+    if isinstance(text, str):
+        return [p.strip() for p in text.split("\n\n") if p.strip() ]
+    result = []
+    for item in text:
+        result.extend(chunking(item))
+    return result
+
+
+
+def ifitisPDF(document):
+    value = open(document, "rb").read()
+    if value[:4] == b"%PDF":
+        print("PDF")
+        with open(document, "rb") as f:
+            pdf = pypdf.PdfReader(f)
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() + "\n"
+        return text
+    else:
+        print("NOT PDF")
+        return None
+    
 
 
     
