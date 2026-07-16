@@ -1,11 +1,10 @@
 from collections import abc
 from collections import abc
 import numbers
-import math
 from foundry_local_sdk import Configuration, FoundryLocalManager
 import sqlite3
 from datetime import datetime
-import system, os, pypdf, json
+import sys, os, pypdf, json, math
 
 documents = [
     "Foundry Local runs AI models directly on your device without cloud connectivity.",
@@ -23,6 +22,8 @@ def main():
     config = Configuration(app_name = "foundry_local_rag")
     FoundryLocalManager.initialize(config)
 
+    global embedding_model
+    
     embedding_model = FoundryLocalManager.instance.catalog.get_model("qwen3-embedding-0.6b")
     embedding_model.download(lambda p : print(f"Downloading embedding model:{p:.1f}%", end="", flush=True))
     print()
@@ -56,13 +57,9 @@ def main():
             connection.close()
             break
 
-        print(repr(query)) 
-        query_response = embedding_model.get_embedding_client().generate_embeddings([query])
-        query_emb = query_response.data[0].embedding
+        results = getTopChunks(query, cursor, top_k=3)
 
-        results = find_relevant(query_emb, doc_embeddings, top_k=3)
-
-        context = "\n".join(f"-{documents[i]}" for i, _ in results)
+        context = "\n".join(f"-{text}" for text, _ in results)
 
         messages = [
             {
@@ -143,6 +140,32 @@ def ifitisPDF(document):
     else:
         print("NOT PDF")
         return None
+
+def getTopChunks(query, cursor, top_k=15):
+
+    queryResponse = embedding_model.get_embedding_client().generate_embeddings([query])
+    queryEmb = queryResponse.data[0].embedding
+
+    cursor.execute("SELECT text, embedding FROM documents")
+    rows = cursor.fetchall()
+
+    scores = []
+
+    for text, embStr in rows:
+        dbEmb = json.loads(embStr)
+
+        score = cosine_similarity(queryEmb, dbEmb)
+
+        scores.append((text, score))
+        print(f"Similarity score for '{text[:30]}...': {score:.4f}")
+
+    scores.sort(key=lambda x: x[1], reverse=True)
+
+    return scores[:top_k]
+
+
+
+
     
 
 
