@@ -23,7 +23,7 @@ def main():
     FoundryLocalManager.initialize(config)
 
     global embedding_model
-    
+
     embedding_model = FoundryLocalManager.instance.catalog.get_model("qwen3-embedding-0.6b")
     embedding_model.download(lambda p : print(f"Downloading embedding model:{p:.1f}%", end="", flush=True))
     print()
@@ -129,7 +129,7 @@ def chunking(text):
 
 def ifitisPDF(document):
     value = open(document, "rb").read()
-    if value[:4] == b"%PDF":
+    if value[:4].lower() == b".pdf":
         print("PDF")
         with open(document, "rb") as f:
             pdf = pypdf.PdfReader(f)
