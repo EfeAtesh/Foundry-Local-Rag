@@ -5,6 +5,9 @@ from foundry_local_sdk import Configuration, FoundryLocalManager
 import sqlite3
 from datetime import datetime
 import sys, os, pypdf, json, math
+from fastapi import FastAPI
+app = FastAPI()
+
 
 documents = [
     "Foundry Local runs AI models directly on your device without cloud connectivity.",
@@ -77,11 +80,13 @@ def main():
 
         #todo if query from user is same then print out same answer
 
+        full_content = ""
         for chunk in chat_model.get_chat_client().complete_streaming_chat(messages):
             if chunk.choices:
                 content = chunk.choices[0].delta.content
                 if content:
                     print(content, end="", flush=False)
+                    full_content += content
                     
                     
         print()
@@ -90,7 +95,7 @@ def main():
         cursor.execute('''
                         INSERT INTO queries (query_question, query_answer, timestamp)
                         VALUES (?, ?, ?)
-                    ''', (query, content, datetime.now()))
+                    ''', (query, full_content, datetime.now()))
         connection.commit()
         print("\n" + "answer saved!" + "\n ")
 
