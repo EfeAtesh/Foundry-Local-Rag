@@ -6,7 +6,48 @@ import sqlite3
 from datetime import datetime
 import sys, os, pypdf, json, math
 from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+
+
 app = FastAPI()
+
+
+class Item(BaseModel):
+    name: str
+    price: float
+    is_offer: bool | None = None
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: str | None = None):
+    return {"item_id": item_id, "q": q}
+
+
+@app.put("/items/{item_id}")
+def update_item(item_id: int, item: Item):
+    return {"item_name": item.name, "item_id": item_id}
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 documents = [
@@ -26,6 +67,8 @@ def main():
     FoundryLocalManager.initialize(config)
 
     global embedding_model
+    global output 
+    global index = 0
 
     embedding_model = FoundryLocalManager.instance.catalog.get_model("qwen3-embedding-0.6b")
     embedding_model.download(lambda p : print(f"Downloading embedding model:{p:.1f}%", end="", flush=True))
@@ -60,6 +103,10 @@ def main():
             connection.close()
             break
 
+        update_item(index, "<p> Question: "+query+"</p>")
+        index+=1
+
+
         results = getTopChunks(query, cursor, top_k=3)
 
         context = "\n".join(f"-{text}" for text, _ in results)
@@ -85,12 +132,14 @@ def main():
             if chunk.choices:
                 content = chunk.choices[0].delta.content
                 if content:
-                    print(content, end="", flush=False)
+                    print(content, end="", flush=True)
                     full_content += content
                     
-                    
+        
+        output += "<p>Answer: " + full_content + "</p>"
+        update_item(index, output)
+        index+=1
         print()
-        print("\n")
 
         cursor.execute('''
                         INSERT INTO queries (query_question, query_answer, timestamp)
