@@ -107,6 +107,13 @@
   transform: scale(0.98);
 }
 
+.new-chat-button.active {
+  background: var(--macos-accent-bg);
+  color: var(--macos-accent);
+  border-color: var(--macos-accent-border);
+  font-weight: 600;
+}
+
 /* Sidebar Sections */
 .sidebar-section {
   flex: 1;

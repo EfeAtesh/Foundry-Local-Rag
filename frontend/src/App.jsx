@@ -12,16 +12,28 @@ function App() {
     { id: 1, title: 'New Chat', active: true }
   ])
 
+  const [convoTopic, setConvoTopic] = useState(0)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!input.trim()) return
 
-    const userMessage = input
+    let userMessage = input.trim()
+
+    if (convoTopic === 1){
+      userMessage += "é*:1"
+    }
+    else if (convoTopic === 2){
+      userMessage += "é*:2"
+    }
+    else if (convoTopic === 3){
+      userMessage += "é*:3"
+    }
     
     setMessages((prevMessages) => [
       ...prevMessages,
-      { role: 'user', text: userMessage }
+      { role: 'user', text: input.trim() }
     ])
 
     setInput('')
@@ -37,11 +49,27 @@ function App() {
       });
 
       const data = await response.json();
+      const botResponse = data.response || 'Errorr.';
+
 
       setMessages((prevMessages) => [
         ...prevMessages,
-        { role: 'assistant', text: data.response }
+        { role: 'assistant', text: '' }
       ]);
+
+      let index = 0;
+      
+      const fakeFlush = setInterval(() => {
+        
+        if (index < botResponse.length){
+          setMessages((prevMessages) => [...prevMessages.slice(0, -1), { role: 'assistant', text: botResponse.slice(0, index + 1) }])
+          index++;
+        }
+        else {
+          clearInterval(fakeFlush);
+        }
+      
+        },2.22);
 
     } catch (error) {
       console.error('ERROR:', error)
@@ -65,19 +93,28 @@ function App() {
           <span className="control expand"></span>
         </div>
 
-        <button className="new-chat-button">
+        <button 
+          className={`new-chat-button ${convoTopic === 3 ? 'active' : ''}`} 
+          onClick={() => setConvoTopic(prev => prev === 3 ? 0 : 3)}
+        >
           <Plus size={14} />
-          <span>Set chat topic: </span>
+          <span>Set chat topic: Wilderness Survival Guide</span>
         </button>
 
-        <button className="new-chat-button">
+        <button 
+          className={`new-chat-button ${convoTopic === 1 ? 'active' : ''}`} 
+          onClick={() => setConvoTopic(prev => prev === 1 ? 0 : 1)}
+        >
           <Plus size={14} />
-          <span>Set chat topic: </span>
+          <span>Set chat topic: Vehicle Fixing Guide</span>
         </button>
 
-        <button className="new-chat-button">
+        <button 
+          className={`new-chat-button ${convoTopic === 2 ? 'active' : ''}`} 
+          onClick={() => setConvoTopic(prev => prev === 2 ? 0 : 2)}
+        >
           <Plus size={14} />
-          <span>Set chat topic: </span>
+          <span>Set chat topic: Finding water or Setting Fire Guide</span>
         </button>
 
 
@@ -90,7 +127,7 @@ function App() {
       <main className="main-content">
         <header className="chat-header">
           <Sparkles className="header-icon" size={16} />
-          <h2>Foundry Local RAG</h2>
+          <h2>Foundry Local RAG Project from Microsoft Summer School 2026: Quick Techincal Help</h2>
         </header>
 
         {/* Message Window */}
@@ -145,18 +182,9 @@ function App() {
   )
 }
 
-function setConvoTopic(index) {
-  
-  const [convoTopic1, setConvoTopic1] = useState("Wilderness Survival Guide")
-  const [convoTopic2, setConvoTopic2] = useState("Vehicle Fixing Guide")
-  const [convoTopic3, setConvoTopic3] = useState("Finding water or Setting Fire Guide")
 
 
 
-
-}
-
-  
 
 
 

@@ -14,16 +14,9 @@ embedding_model = None
 chat_model = None
 connection = None
 cursor = None
+context = ""
 
-documents = [
-    "Foundry Local runs AI models directly on your device without cloud connectivity.",
-    "The Foundry Local SDK supports Python, C#, JavaScript, and Rust.",
-    "Embedding models convert text into numerical vectors for similarity search.",
-    "Foundry Local uses ONNX Runtime for efficient model inference on CPUs and GPUs.",
-    "The model catalog provides pre-optimized models that you can download and run locally.",
-    "Retrieval-augmented generation grounds model responses in your own data.",
-    "Vector similarity search finds documents that are semantically close to a query.",
-    "Chat completions generate natural language responses from a prompt and context.",
+documents = [""
 ]
 
 @asynccontextmanager
@@ -96,6 +89,8 @@ async def lifespan(app: FastAPI):
     if connection:
         connection.close()
 
+    
+
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -112,7 +107,7 @@ class ChatRequest(BaseModel):
 
 
 
-# this is the same POL function from any standart scientific calculator
+#same POL function from any standart scientific calculator
 
 def cosine_similarity(a, b):
     return sum(x*y for x,y in zip(a,b)) / (math.sqrt(sum(x*x for x in a)) * math.sqrt(sum(y*y for y in b)))
@@ -146,12 +141,32 @@ def getTopChunks(query, cursor, top_k=3):
 # API Endpoint
 @app.post("/query")
 def query_endpoint(request: ChatRequest):
-    global chat_model, connection, cursor
+    global chat_model, connection, cursor, context
     
     user_query = request.query
+    context = ""
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    if user_query.endswith("é*:1"):
+        query = user_query[:-(len("é*:1"))] + " (Source: Utah State University Extension, Dept. of Automotive Technology, Bulletin No. 402)"
+        docs = readMD(os.path.join(base_dir, "vehicle_fixing_guide.md"))
+        context = "\n".join(docs)
+    elif user_query.endswith("é*:2"):
+        query = user_query[:-(len("é*:2"))] + " (Source: U.S. Dept. of the Army, FM 3-05.70 Survival Manual, Chapter 6: Water Procurement & Chapter 7: Firecraft, 2002)"
+        docs = readMD(os.path.join(base_dir, "water_and_fire_guide.md"))
+        context = "\n".join(docs)
+    elif user_query.endswith("é*:3"):
+        query = user_query[:-(len("é*:3"))] + " (Source: U.S. Army Infantry School, FM 21-76 Survival Field Manual, Department of the Army, 1992)"
+        docs = readMD(os.path.join(base_dir, "wilderness_survival_guide.md"))
+        context = "\n".join(docs)
+    else:
+        query = user_query
+        results = getTopChunks(query, cursor, top_k=3)
+        context = "\n".join(f"- {text}" for text, _ in results)
+
     
-    results = getTopChunks(user_query, cursor, top_k=3)
-    context = "\n".join(f"- {text}" for text, _ in results)
+
+    
     
     messages = [
         {
@@ -162,7 +177,7 @@ def query_endpoint(request: ChatRequest):
                 f"Context:\n{context}"
             ),
         },
-        {"role": "user", "content": user_query},
+        {"role": "user", "content": query},
     ]
 
     full_content = ""
@@ -182,6 +197,7 @@ def query_endpoint(request: ChatRequest):
         VALUES (?, ?, ?)
     ''', (user_query, full_content, datetime.now().isoformat()))
     connection.commit()
+    context = ""
 
     return {"response": full_content}
 
@@ -190,6 +206,27 @@ def query_endpoint(request: ChatRequest):
 
 def home():
     return {"status": "Foundry Local RAG API is running"}
+
+
+def readMD(path):
+    docs = []
+    with open(path, "r", encoding="utf-8") as file:
+        for line in file:
+            if line.startswith("#"):
+                continue
+            if line.startswith("*"):
+                continue
+            if line.startswith("-"):
+                continue
+            if line.startswith("//"):
+                continue
+            elif line.startswith("\n"):
+                continue
+            else:
+                docs.append(line)
+            
+    return docs
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
