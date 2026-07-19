@@ -1,122 +1,163 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { Send, Bot, User, Sparkles, Plus, MessageSquare, Settings } from 'lucide-react'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState([
+    { role: 'assistant', text: 'Hello, just write a thing or ask any question to me, that you have...' }
+  ])
+  const [loading, setLoading] = useState(false)
+  const [sessions, setSessions] = useState([
+    { id: 1, title: 'New Chat', active: true }
+  ])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!input.trim()) return
+
+    const userMessage = input
+    
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { role: 'user', text: userMessage }
+    ])
+
+    setInput('')
+    setLoading(true)
+
+    try {
+      const response = await fetch('http://localhost:8000/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: userMessage }),
+      });
+
+      const data = await response.json();
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: 'assistant', text: data.response }
+      ]);
+
+    } catch (error) {
+      console.error('ERROR:', error)
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { role: 'assistant', text: 'Something uncompatible occured' }
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="macos-window">
+      {/* macOS Sidebar */}
+      <aside className="sidebar">
+        {/* Traffic Light Controls */}
+        <div className="window-controls">
+          <span className="control close"></span>
+          <span className="control minimize"></span>
+          <span className="control expand"></span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+
+        <button className="new-chat-button">
+          <Plus size={14} />
+          <span>Set chat topic: </span>
         </button>
-      </section>
 
-      <div className="ticks"></div>
+        <button className="new-chat-button">
+          <Plus size={14} />
+          <span>Set chat topic: </span>
+        </button>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+        <button className="new-chat-button">
+          <Plus size={14} />
+          <span>Set chat topic: </span>
+        </button>
+
+
+
+
+        
+
+      </aside>
+      {/* macOS Main Chat Area */}
+      <main className="main-content">
+        <header className="chat-header">
+          <Sparkles className="header-icon" size={16} />
+          <h2>Foundry Local RAG</h2>
+        </header>
+
+        {/* Message Window */}
+        <div className="chat-window">
+          {messages.map((msg, index) => (
+            <div key={index} className={`message-row ${msg.role}`}>
+              <div className="avatar">
+                {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
+              </div>
+              <div className="message-bubble">
+                <p>{msg.text}</p>
+              </div>
+            </div>
+          ))}
+
+
+          {/* Typing Loading Indicator */}
+          {loading && (
+            <div className="message-row assistant loading">
+              <div className="avatar">
+                <Bot size={14} />
+              </div>
+              <div className="message-bubble">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        {/* Floating Input Area */}
+        <footer className="chat-input-area">
+          <form onSubmit={handleSubmit} className="input-form">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Select here to type..."
+              disabled={loading}
+              className="chat-input"
+            />
+            <button type="submit" disabled={loading || !input.trim()} className="send-button">
+              <Send size={14} />
+            </button>
+          </form>
+        </footer>
+      </main>
+    </div>
   )
 }
+
+function setConvoTopic(index) {
+  
+  const [convoTopic1, setConvoTopic1] = useState("Wilderness Survival Guide")
+  const [convoTopic2, setConvoTopic2] = useState("Vehicle Fixing Guide")
+  const [convoTopic3, setConvoTopic3] = useState("Finding water or Setting Fire Guide")
+
+
+
+
+}
+
+  
+
+
 
 export default App
