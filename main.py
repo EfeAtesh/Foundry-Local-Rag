@@ -1,24 +1,26 @@
 from collections import abc
-import numbers
 from foundry_local_sdk import Configuration, FoundryLocalManager
 import sqlite3
 from datetime import datetime
-import sys, os, pypdf, json, math
+import os, json, math
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import uvicorn
 
+#global variables to hold models, db connections and contexts
 embedding_model = None
 chat_model = None
 connection = None
 cursor = None
 context = ""
 
+#array containing base document strings to seed the vector database
 documents = [""
 ]
 
+#init of model
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global embedding_model, chat_model, connection, cursor
@@ -90,7 +92,7 @@ async def lifespan(app: FastAPI):
         connection.close()
 
     
-
+#backend init of front end
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -101,18 +103,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+#request and response models
 class ChatRequest(BaseModel):
     query: str
     message_history: list[dict[str, str]] = []
 
 
 
-#same POL function from any standart scientific calculator
+#same pol function from any standart scientific calculator
 
 def cosine_similarity(a, b):
+    """
+    Computes the cosine similarity between two numerical vectors.
+    Used to determine how semantically close a query is to a document chunk.
+    """
     return sum(x*y for x,y in zip(a,b)) / (math.sqrt(sum(x*x for x in a)) * math.sqrt(sum(y*y for y in b)))
 
 def chunking(text):
+    """
+    Splits text blocks into paragraphs using double newlines as the boundary.
+    Cleans leading/trailing whitespaces and recursively processes arrays of texts.
+    """
     if isinstance(text, str):
         return [p.strip() for p in text.split("\n\n") if p.strip()]
     result = []
@@ -120,9 +132,14 @@ def chunking(text):
         result.extend(chunking(item))
     return result
 
-
-
 def getTopChunks(query, cursor, top_k=3):
+    """
+    Retrieves the most semantically relevant document chunks from the SQLite database:
+    1. Generates an embedding vector for the user query using Qwen-Embedding.
+    2. Fetches all indexed documents and their pre-computed embeddings from the DB.
+    3. Computes the cosine similarity between the query embedding and each document embedding.
+    4. Sorts the results in descending order and returns the top_k chunks.
+    """
     queryResponse = embedding_model.get_embedding_client().generate_embeddings([query])
     queryEmb = queryResponse.data[0].embedding
 
@@ -138,41 +155,49 @@ def getTopChunks(query, cursor, top_k=3):
     scores.sort(key=lambda x: x[1], reverse=True)
     return scores[:top_k]
 
-# API Endpoint
+#api endpoint
 @app.post("/query")
 def query_endpoint(request: ChatRequest):
+    """
+    Core RAG API Endpoint.
+    Handles dynamic topic context loading or falls back to SQLite database semantic search.
+    Generates answers using the local Qwen LLM and logs history to SQLite.
+    """
     global chat_model, connection, cursor, context
     
     user_query = request.query
     context = ""
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    #check for topic suffixes sent by the frontend toggle buttons
     if user_query.endswith("é*:1"):
+        #topic 1: vehicle fixing. clean suffix and append formal bibliography
         query = user_query[:-(len("é*:1"))] + " (Source: Utah State University Extension, Dept. of Automotive Technology, Bulletin No. 402)"
         docs = readMD(os.path.join(base_dir, "vehicle_fixing_guide.md"))
         context = "\n".join(docs)
     elif user_query.endswith("é*:2"):
+        #topic 2: water & fire. clean suffix and append formal bibliography
         query = user_query[:-(len("é*:2"))] + " (Source: U.S. Dept. of the Army, FM 3-05.70 Survival Manual, Chapter 6: Water Procurement & Chapter 7: Firecraft, 2002)"
         docs = readMD(os.path.join(base_dir, "water_and_fire_guide.md"))
         context = "\n".join(docs)
     elif user_query.endswith("é*:3"):
+        #topic 3: wilderness survival. clean suffix and append formal bibliography
         query = user_query[:-(len("é*:3"))] + " (Source: U.S. Army Infantry School, FM 21-76 Survival Field Manual, Department of the Army, 1992)"
         docs = readMD(os.path.join(base_dir, "wilderness_survival_guide.md"))
         context = "\n".join(docs)
     else:
+        #default rag mode: search sqlite database using embeddings
         query = user_query
         results = getTopChunks(query, cursor, top_k=3)
         context = "\n".join(f"- {text}" for text, _ in results)
-
     
-
-    
-    
+    #construct the rag payload for the llm
     messages = [
         {
             "role": "system",
             "content": (
-                "Answer the user's question using only the provided context. Explain everything shortly but very precise and accurate "
+                "Answer the user's question using only the provided context. Explain everything shortly but very precise and accurate. "
                 "If the context doesn't contain enough information, say so.\n\n"
                 f"Context:\n{context}"
             ),
@@ -180,6 +205,7 @@ def query_endpoint(request: ChatRequest):
         {"role": "user", "content": query},
     ]
 
+    #generate response from the cached qwen model
     full_content = ""
     try:
         for chunk in chat_model.get_chat_client().complete_streaming_chat(messages):
@@ -191,7 +217,7 @@ def query_endpoint(request: ChatRequest):
         print(f"Hata: {e}")
         full_content = "Error."
 
-
+    #log the interaction history into the sqlite queries table
     cursor.execute('''
         INSERT INTO queries (query_question, query_answer, timestamp)
         VALUES (?, ?, ?)
@@ -201,14 +227,21 @@ def query_endpoint(request: ChatRequest):
 
     return {"response": full_content}
 
+#home api endpoint  set status of server 
 @app.get("/")
-
-
 def home():
     return {"status": "Foundry Local RAG API is running"}
 
 
 def readMD(path):
+    """
+    Parses a markdown file and filters out structural metadata.
+    Ignores headers (#), comment markings (//), bullet points (*, -), and blank lines.
+    Returns a list of raw text lines.
+
+    used traditional open for python
+
+    """
     docs = []
     with open(path, "r", encoding="utf-8") as file:
         for line in file:
@@ -228,8 +261,6 @@ def readMD(path):
     return docs
 
 
+#where it will start
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
-
-
-

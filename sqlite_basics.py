@@ -1,7 +1,9 @@
+#sqlite basics script to initialize databases, tables, and test cursor operations
 import sqlite3
 
 #table named documents
 #if those tables already exists than delete their cursor.execute calls from below
+#this was just for initating tables and  test site of cursor
 
 connection = sqlite3.connect('database-rag.db')
 cursor = connection.cursor()
@@ -32,6 +34,8 @@ cursor.execute('''
 
 ''')
 """
+
+
 print("Table created successfully.")
 
 

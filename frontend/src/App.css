@@ -1,7 +1,7 @@
-/* macOS Tahoe Design System Theme - Premium Colors Override */
+/*macos tahoe design system theme - premium colors override*/
 
 .macos-window {
-  /* Light Mode Colors (Official Apple SF Design Palette) */
+  /*light mode colors (official apple sf design palette)*/
   --macos-bg: #ffffff;
   --macos-sidebar-bg: rgba(245, 245, 247, 0.75);
   --macos-chat-bg: #ffffff;
@@ -29,7 +29,7 @@
 
 @media (prefers-color-scheme: dark) {
   .macos-window {
-    /* Dark Mode Colors (macOS Native Dark Palette) */
+    /*dark mode colors (macos native dark palette)*/
     --macos-bg: #1e1e1e;
     --macos-sidebar-bg: rgba(38, 38, 38, 0.75);
     --macos-chat-bg: #121212;
@@ -47,9 +47,7 @@
   }
 }
 
-/* -----------------------------------------
-   Sidebar (Left Pane)
-   ----------------------------------------- */
+/*sidebar (left pane)*/
 .sidebar {
   width: 260px;
   background: var(--macos-sidebar-bg);
@@ -64,7 +62,7 @@
   height: 100%;
 }
 
-/* Traffic Light Buttons */
+/*traffic light buttons*/
 .window-controls {
   display: flex;
   gap: 8px;
@@ -79,7 +77,7 @@
   display: inline-block;
 }
 
-/* New Chat Button */
+/*new chat button*/
 .new-chat-button {
   display: flex;
   align-items: center;
@@ -114,7 +112,7 @@
   font-weight: 600;
 }
 
-/* Sidebar Sections */
+/*sidebar sections*/
 .sidebar-section {
   flex: 1;
   display: flex;
@@ -177,7 +175,7 @@
   text-overflow: ellipsis;
 }
 
-/* Sidebar Footer */
+/*sidebar footer*/
 .sidebar-footer {
   border-top: 1px solid var(--macos-border);
   padding-top: 12px;
@@ -205,9 +203,7 @@
   }
 }
 
-/* -----------------------------------------
-   Main Content Area (Right Pane)
-   ----------------------------------------- */
+/*main content area (right pane)*/
 .main-content {
   flex: 1;
   display: flex;
@@ -217,7 +213,7 @@
   position: relative;
 }
 
-/* Header */
+/*header*/
 .chat-header {
   display: flex;
   align-items: center;
@@ -240,7 +236,7 @@
   color: var(--macos-accent);
 }
 
-/* Chat Window */
+/*chat window*/
 .chat-window {
   flex: 1;
   overflow-y: auto;
@@ -251,7 +247,7 @@
   background: var(--macos-chat-bg);
 }
 
-/* Message Rows */
+/*message rows*/
 .message-row {
   display: flex;
   gap: 12px;
@@ -268,7 +264,7 @@
   align-self: flex-start;
 }
 
-/* Avatar styling */
+/*avatar styling*/
 .avatar {
   width: 28px;
   height: 28px;
@@ -288,7 +284,7 @@
   color: var(--macos-accent);
 }
 
-/* Message Bubbles */
+/*message bubbles*/
 .message-bubble {
   padding: 10px 14px;
   border-radius: 18px;
@@ -301,7 +297,7 @@
   text-align: left;
 }
 
-/* Blue bubbles for User (macOS style) */
+/*blue bubbles for user (macos style)*/
 .user .message-bubble {
   background: var(--macos-bubble-user);
   color: var(--macos-bubble-user-text);
@@ -321,7 +317,7 @@
   margin: 0;
 }
 
-/* Typing Loading Dots */
+/*typing loading dots*/
 .typing-indicator {
   display: flex;
   gap: 4px;
@@ -346,9 +342,7 @@
   animation-delay: -0.16s;
 }
 
-/* -----------------------------------------
-   Floating Pill Input Area
-   ----------------------------------------- */
+/*floating pill input area*/
 .chat-input-area {
   padding: 16px 24px 24px;
   background: var(--macos-chat-bg);
@@ -360,7 +354,7 @@
   width: 100%;
   background: var(--macos-bubble-bot);
   border: 1px solid var(--macos-border);
-  border-radius: 24px; /* macOS Pill shape */
+  border-radius: 24px; /*macos pill shape*/
   padding: 4px 6px 4px 16px;
   box-sizing: border-box;
   align-items: center;
@@ -417,7 +411,7 @@
   cursor: not-allowed;
 }
 
-/* Animations */
+/*animations*/
 @keyframes bounce {
   0%, 80%, 100% { 
     transform: scale(0);
@@ -426,7 +420,7 @@
   }
 }
 
-/* Custom Scrollbar for Chat Window */
+/*custom scrollbar for chat window*/
 .chat-window::-webkit-scrollbar {
   width: 8px;
 }

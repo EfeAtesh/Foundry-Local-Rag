@@ -2,18 +2,27 @@ import { useState } from 'react'
 import { Send, Bot, User, Sparkles, Plus, MessageSquare, Settings } from 'lucide-react'
 import './App.css'
 
+
+
+//main application component representing the local rag user interface
 function App() {
+  //state to keep track of the text inputted in the search/chat input
   const [input, setInput] = useState('')
+  //state storing the array of message objects to render in the chat window
   const [messages, setMessages] = useState([
     { role: 'assistant', text: 'Hello, just write a thing or ask any question to me, that you have...' }
   ])
+  //state representing the loading status during chat api calls
   const [loading, setLoading] = useState(false)
+  //state for managing user conversation sessions
   const [sessions, setSessions] = useState([
     { id: 1, title: 'New Chat', active: true }
   ])
 
+  //state indicating the currently active specialized manual topic
   const [convoTopic, setConvoTopic] = useState(0)
 
+  //handles client side submit, appends suffix for active topic guide, and fetches response from fastapi backend
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -59,6 +68,7 @@ function App() {
 
       let index = 0;
       
+      //simulates real time streaming effect by flushing response characters sequentially
       const fakeFlush = setInterval(() => {
         
         if (index < botResponse.length){
@@ -84,9 +94,9 @@ function App() {
 
   return (
     <div className="macos-window">
-      {/* macOS Sidebar */}
+      {/*macos sidebar*/}
       <aside className="sidebar">
-        {/* Traffic Light Controls */}
+        {/*traffic light controls*/}
         <div className="window-controls">
           <span className="control close"></span>
           <span className="control minimize"></span>
@@ -123,14 +133,14 @@ function App() {
         
 
       </aside>
-      {/* macOS Main Chat Area */}
+      {/*macos main chat area*/}
       <main className="main-content">
         <header className="chat-header">
           <Sparkles className="header-icon" size={16} />
           <h2>Foundry Local RAG Project from Microsoft Summer School 2026: Quick Techincal Help</h2>
         </header>
 
-        {/* Message Window */}
+        {/*message window*/}
         <div className="chat-window">
           {messages.map((msg, index) => (
             <div key={index} className={`message-row ${msg.role}`}>
@@ -144,7 +154,7 @@ function App() {
           ))}
 
 
-          {/* Typing Loading Indicator */}
+          {/*typing loading indicator*/}
           {loading && (
             <div className="message-row assistant loading">
               <div className="avatar">
@@ -161,7 +171,7 @@ function App() {
           )}
         </div>
 
-        {/* Floating Input Area */}
+        {/*floating input area*/}
         <footer className="chat-input-area">
           <form onSubmit={handleSubmit} className="input-form">
             <input
