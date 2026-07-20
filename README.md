@@ -44,6 +44,30 @@ graph TD
 
 ---
 
+## 📂 Project Directory Structure
+
+```text
+Foundry-Local-Rag/
+├── main.py                      # FastAPI server & RAG logic (Qwen embedding/chat, SQLite vector search)
+├── database-rag.db              # SQLite database for pre-computed vector embeddings & query logs
+├── vehicle_fixing_guide.md      # Vehicle Maintenance Manual (Topic 1: é*:1)
+├── water_and_fire_guide.md      # Water Procurement & Firecraft Manual (Topic 2: é*:2)
+├── wilderness_survival_guide.md # Wilderness Survival Manual (Topic 3: é*:3)
+├── presentation.html            # 6-Slide Interactive Presentation (Light Theme)
+├── presentation.pdf             # Exported 16:9 PDF Presentation
+├── generate_pdf.js              # Puppeteer script for PDF generation
+├── sqlite_basics.py             # SQLite helper & database seeding script
+└── frontend/                    # React frontend application (Vite)
+    ├── src/
+    │   ├── App.jsx              # macOS Tahoe chat UI & topic toggle logic
+    │   ├── App.css              # Glassmorphism, traffic light controls & custom styling
+    │   └── main.jsx             # React entry point
+    ├── index.html               # HTML container
+    └── package.json             # Frontend dependencies & scripts
+```
+
+---
+
 ## Setup & Installation
 
 ### Prerequisites
